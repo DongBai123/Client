@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.PurchaseMapper">
+
+    <select id="selectAll" resultType="com.example.entity.Purchase">
+        select purchase.*,goods.name as goodsName from purchase
+        left join goods on purchase.goods_id = goods.id
+        <where>
+            <if test="goodsName != null"> and goods.name like concat('%', #{goodsName}, '%')</if>
+        </where>
+        order by goods.id desc
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Purchase" useGeneratedKeys="true">
+        insert into purchase(id, goods_id,num,date,unit,comment)
+        values (#{id}, #{goodsId},#{num},#{date},#{unit},#{comment})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.Purchase">
+        update purchase set goods_id = #{goodsId},num=#{num},date=#{date},unit=#{unit},comment=#{comment}
+        where id = #{id} 
+    </update>
+
+</mapper>

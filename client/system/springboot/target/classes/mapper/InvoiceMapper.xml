@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.InvoiceMapper">
+
+    <select id="selectAll" resultType="com.example.entity.Invoice">
+        select * from invoice
+        <where>
+            <if test="invoiceNum != null"> and invoice_num like concat('%', #{invoiceNum}, '%')</if>
+        </where>
+        order by id desc
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Invoice" useGeneratedKeys="true">
+        insert into invoice(id, invoice_num,amount,invoice_type,state,user_name,time,phone)
+        values (#{id}, #{invoiceNum},#{amount},#{invoiceType},#{state},#{userName},#{time},#{phone})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.Invoice">
+        update invoice set invoice_num = #{invoiceNum},amount = #{amount},invoice_type = #{invoiceType},state = #{state},user_name=#{userName},time=#{time},phone=#{phone}
+        where id = #{id} 
+    </update>
+
+</mapper>
