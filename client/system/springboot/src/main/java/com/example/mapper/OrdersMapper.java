@@ -38,6 +38,26 @@ public interface OrdersMapper {
     */
     List<Orders> selectAll(Orders orders);
 
+    /**
+     * 统计订单数量
+     */
+    @Select("<script>" +
+            "SELECT COUNT(*) FROM orders " +
+            "WHERE 1=1 " +
+            "<if test='userId != null'>AND user_id = #{userId}</if> " +
+            "<if test='goodsId != null'>AND goods_id = #{goodsId}</if>" +
+            "</script>")
+    int countOrders(Integer userId, Integer goodsId);
 
+    /**
+     * 计算订单总金额
+     */
+    @Select("<script>" +
+            "SELECT SUM(num * price) FROM orders " +
+            "WHERE 1=1 " +
+            "<if test='userId != null'>AND user_id = #{userId}</if> " +
+            "<if test='goodsId != null'>AND goods_id = #{goodsId}</if>" +
+            "</script>")
+    int sumOrderAmount(Integer userId, Integer goodsId);
 
 }

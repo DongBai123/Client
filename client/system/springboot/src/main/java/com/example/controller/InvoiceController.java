@@ -64,15 +64,21 @@ public class InvoiceController {
         return Result.success(list);
     }
 
+
     /**
      * 分页查询
      */
     @GetMapping("/selectPage")
     public Result selectPage(Invoice invoice,
                              @RequestParam(defaultValue = "1") Integer pageNum,
-                             @RequestParam(defaultValue = "10") Integer pageSize) {
-        PageInfo<Invoice> page = invoiceService.selectPage(invoice, pageNum, pageSize);
+                             @RequestParam(defaultValue = "10") Integer pageSize,
+                             @RequestParam(required = false) String userRole,
+                             @RequestParam(required = false) String userName) {
+        // 添加日志
+        System.out.println("Controller - Received userRole: " + userRole);
+        System.out.println("Controller - Received userName: " + userName);
+
+        PageInfo<Invoice> page = invoiceService.selectPage(invoice, pageNum, pageSize, userRole, userName);
         return Result.success(page);
     }
-
 }

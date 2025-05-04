@@ -1,13 +1,26 @@
 package com.example.entity;
 
+/**
+ * Statistic 实体类
+ * 对应 statistic 数据库表
+ */
 public class Statistic {
-    private Integer id;
-    private Integer userId;
-    private Integer goodsId;
-    private Integer buyNum;
-    private Integer sellSum;
-    private String goodsName;
+    private Integer id;          // 主键ID
+    private Integer userId;      // 用户ID
+    private Integer goodsId;     // 商品ID
+    private Integer buyNum;      // 订单数量
+    private Double sellSum;      // 销售总额
     private String userName;
+    private String goodsName;
+    private Integer orderCount;
+
+    public Integer getOrderCount() {
+        return orderCount;
+    }
+
+    public void setOrderCount(Integer orderCount) {
+        this.orderCount = orderCount;
+    }
 
     public String getUserName() {
         return userName;
@@ -25,6 +38,7 @@ public class Statistic {
         this.goodsName = goodsName;
     }
 
+    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -57,11 +71,11 @@ public class Statistic {
         this.buyNum = buyNum;
     }
 
-    public Integer getSellSum() {
+    public Double getSellSum() {
         return sellSum;
     }
 
-    public void setSellSum(Integer sellSum) {
+    public void setSellSum(Double sellSum) {
         this.sellSum = sellSum;
     }
 }

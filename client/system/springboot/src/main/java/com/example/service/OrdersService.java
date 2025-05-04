@@ -88,8 +88,23 @@ public class OrdersService {
     /**
      * 分页查询
      */
-    public PageInfo<Orders> selectPage(Orders orders, Integer pageNum, Integer pageSize) {
+    public PageInfo<Orders> selectPage(Orders orders, Integer pageNum, Integer pageSize, String userRole, String userName) {
+        System.out.println("Current user role: " + userRole);
+        System.out.println("Current user name: " + userName);
+
         PageHelper.startPage(pageNum, pageSize);
+
+        // 清空可能存在的userName，防止干扰
+        orders.setUserName(null);
+
+        // 如果不是管理员，只能查看自己的订单
+        if (!"ADMIN".equals(userRole)) {
+            System.out.println("Setting filter for non-admin user: " + userName);
+            orders.setUserName(userName);
+        } else {
+            System.out.println("Admin user - no filter applied");
+        }
+
         List<Orders> list = ordersMapper.selectAll(orders);
         return PageInfo.of(list);
     }

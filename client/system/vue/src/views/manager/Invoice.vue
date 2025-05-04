@@ -23,7 +23,7 @@
           <template #default="scope">
             <el-button v-if="data.user.role === 'USER'&& scope.row.state === '待申请'" type="primary" @click="changeState(scope.row,'待审核')">申请</el-button>
             <el-button v-if="data.user.role === 'ADMIN'&& scope.row.state === '待审核'" type="primary" @click="changeState(scope.row,'已通过')">通过</el-button>
-            <el-button v-if="data.user.role === 'USER'" type="danger" @click="handleDelete(scope.row.id)">撤销</el-button>
+            <el-button v-if="data.user.role === 'USER'&& scope.row.state === '待审核'" type="danger" @click="handleDelete(scope.row.id)">撤销</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -40,12 +40,6 @@
         </el-form-item>
         <el-form-item label="发票类型" prop="invoiceType">
           <el-input v-model="data.form.invoiceType" placeholder="请输入发票类型" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="申请人" prop="invoiceType">
-          <el-input v-model="data.form.userName" placeholder="请输入申请人姓名" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="申请人电话" prop="phone">
-          <el-input v-model="data.form.phone" placeholder="请输入申请人电话" autocomplete="off" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -80,16 +74,26 @@ const data = reactive({
 
 // 分页查询
 const load = () => {
+  console.log('Loading invoices with user data:', {
+    role: data.user.role,
+    name: data.user.name
+  });
+
   request.get('/invoice/selectPage', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
-      invoiceNum: data.invoiceNum
+      invoiceNum: data.invoiceNum,
+      userRole: data.user.role,  // 确保这里传递的是正确的角色
+      userName: data.user.name
     }
   }).then(res => {
+    console.log('Response data:', res.data);  // 添加响应数据日志
     data.tableData = res.data?.list
     data.total = res.data?.total
-  })
+  }).catch(err => {
+    console.error('Error loading invoices:', err);
+  });
 }
 
 // 新增
@@ -106,6 +110,10 @@ const handleEdit = (row) => {
 
 // 新增保存
 const add = () => {
+  // 设置当前用户信息
+  data.form.userName = data.user.name
+  data.form.phone = data.user.phone
+
   request.post('/invoice/add', data.form).then(res => {
     if (res.code === '200') {
       load()

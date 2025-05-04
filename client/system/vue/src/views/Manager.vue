@@ -29,6 +29,10 @@
             <el-icon><Goods /></el-icon>
             <span>货物购买</span>
           </el-menu-item>
+          <el-menu-item index="/statistic" v-if="data.user.role === 'ADMIN'">
+            <el-icon><Tickets /></el-icon>
+            <span>统计模块</span>
+          </el-menu-item>
           <el-menu-item index="/orders">
             <el-icon><Tickets /></el-icon>
             <span>订单管理</span>

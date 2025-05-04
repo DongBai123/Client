@@ -70,8 +70,12 @@ public class OrdersController {
     @GetMapping("/selectPage")
     public Result selectPage(Orders orders,
                              @RequestParam(defaultValue = "1") Integer pageNum,
-                             @RequestParam(defaultValue = "10") Integer pageSize) {
-        PageInfo<Orders> page = ordersService.selectPage(orders, pageNum, pageSize);
+                             @RequestParam(defaultValue = "10") Integer pageSize,
+                             @RequestParam(required = false) String userRole,
+                             @RequestParam(required = false) String userName) {
+        System.out.println("Controller received - userRole: " + userRole + ", userName: " + userName);
+
+        PageInfo<Orders> page = ordersService.selectPage(orders, pageNum, pageSize, userRole, userName);
         return Result.success(page);
     }
 

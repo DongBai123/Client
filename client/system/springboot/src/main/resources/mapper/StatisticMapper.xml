@@ -1,27 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.mapper.StatisticMapper">
 
-    <select id="selectAll" resultType="com.example.entity.Statistic">
-        elect statistic.* ,goods.name as goodsName,user.name as userName from statistic
-        left join goods on statistic.goods_id = goods.id
-        left join user on statistic.user_id =user.id
-        <where>
-            <if test="userName!= null"> and statistic.user_name like concat('%', #{userName}, '%')</if>
-        </where>
-        order by statistic.id desc
-    </select>
 
-    <insert id="insert" parameterType="com.example.entity.Statistic" useGeneratedKeys="true">
-        insert into statistic(id, user_id,goods_id,buy_num,sell_num)
-        values (#{id}, #{userId},#{goodsId},#{buyNum},#{sellSum})
-    </insert>
-
-    <update id="updateById" parameterType="com.example.entity.Statistic">
-        update statistic set user_id = #{userId},goods_id = #{userId},buy_num = #{buyNum},sell_num = #{sellSum}
-        where id = #{id} 
-    </update>
-
+    <!-- 其他统计查询... -->
 </mapper>

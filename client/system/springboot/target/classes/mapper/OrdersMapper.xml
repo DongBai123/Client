@@ -1,27 +1,46 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.mapper.OrdersMapper">
 
     <select id="selectAll" resultType="com.example.entity.Orders">
-        select orders.* ,goods.name as goodsName,user.name as userName from orders
-        left join goods on orders.goods_id = goods.id
-        left join user on orders.user_id =user.id
+        SELECT
+        orders.*,
+        goods.name as goodsName,
+        user.name as userName
+        FROM orders
+        LEFT JOIN goods ON orders.goods_id = goods.id
+        LEFT JOIN user ON orders.user_id = user.id
         <where>
-            <if test="orderNum != null"> and orders.order_num like concat('%', #{orderNum}, '%')</if>
+            <!-- 只有在明确设置了userName时才添加过滤条件 -->
+            <if test="userName != null">
+                AND user.name = #{userName}
+            </if>
+            <if test="orderNum != null and orderNum != ''">
+                AND orders.order_num LIKE CONCAT('%', #{orderNum}, '%')
+            </if>
+            <if test="state != null and state != ''">
+                AND orders.state = #{state}
+            </if>
         </where>
-        order by orders.id desc
+        ORDER BY orders.id DESC
     </select>
 
-    <insert id="insert" parameterType="com.example.entity.Orders" useGeneratedKeys="true">
-        insert into orders(id, order_num,goods_id,num,user_id,state,time)
-        values (#{id}, #{orderNum}, #{goodsId}, #{num}, #{userId}, #{state}, #{time})
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO orders(
+            order_num, goods_id, num, user_id, state, time
+        ) VALUES (
+                     #{orderNum}, #{goodsId}, #{num}, #{userId}, #{state}, #{time}
+                 )
     </insert>
 
-    <update id="updateById" parameterType="com.example.entity.Orders">
-        update orders set order_num=#{orderNum},goods_id=#{goodsId},num=#{num},user_id=#{userId},state=#{state},time=#{time}
-        where id = #{id} 
+    <update id="updateById">
+        UPDATE orders SET
+                          goods_id = #{goodsId},
+                          num = #{num},
+                          state = #{state},
+                          time = #{time}
+        WHERE id = #{id}
     </update>
-
 </mapper>

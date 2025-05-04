@@ -1,150 +1,262 @@
 <template>
-  <div>
+  <div class="statistic-container">
+    <el-card class="box-card">
+      <template #header>
+        <div class="card-header">
+          <span>统计分析</span>
+        </div>
+      </template>
 
-    <div class="card" style="margin-bottom: 5px;">
-      <el-input v-model="data.name" style="width: 300px; margin-right: 10px" placeholder="请输入标题查询"></el-input>
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button type="info" style="margin: 0 10px" @click="reset">重置</el-button>
-    </div>
+      <!-- 统计类型选择 -->
+      <el-radio-group v-model="activeTab" @change="handleTabChange">
+        <el-radio-button label="user">按用户统计</el-radio-button>
+        <el-radio-button label="goods">按商品统计</el-radio-button>
+        <el-radio-button label="detail">详细统计</el-radio-button>
+      </el-radio-group>
 
-    <div class="card" style="margin-bottom: 5px">
-      <div style="margin-bottom: 10px">
-        <el-button type="primary" @click="handleAdd">新增</el-button>
+      <!-- 图表显示 -->
+      <div class="chart-container">
+        <v-chart
+            :option="chartOption"
+            :loading="loading"
+            style="width: 100%; height: 400px;"
+            autoresize
+        />
       </div>
-      <el-table :data="data.tableData" stripe>
-        <el-table-column label="客户" prop="userName"></el-table-column>
-        <el-table-column label="货物名称" prop="goodsName"></el-table-column>
-        <el-table-column label="购买数量" prop="buySum"></el-table-column>
-        <el-table-column label="销售金额" prop="sellSum"></el-table-column>
-        <el-table-column label="操作" header-align="center" width="160">
+
+      <!-- 统计数据表格 -->
+      <el-table
+          :data="tableData"
+          style="width: 100%; margin-top: 20px"
+          border
+          v-loading="loading"
+      >
+        <!-- 用户名称列 -->
+        <el-table-column
+            v-if="activeTab === 'user' || activeTab === 'detail'"
+            prop="userName"
+            label="用户名称"
+            min-width="120"
+        />
+
+        <!-- 商品名称列 -->
+        <el-table-column
+            v-if="activeTab === 'goods' || activeTab === 'detail'"
+            prop="goodsName"
+            label="商品名称"
+            min-width="120"
+        />
+        <!-- 订单数量列 -->
+        <el-table-column
+            prop="orderCount"
+            label="订单数量"
+            min-width="100"
+        />
+        <!-- 购买数量列 -->
+        <el-table-column
+            prop="buyNum"
+            label="购买数量"
+            min-width="100"
+        />
+
+        <!-- 销售金额列 -->
+        <el-table-column
+            prop="sellSum"
+            label="销售金额"
+            min-width="120"
+        >
           <template #default="scope">
-            <el-button type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+            {{ formatPrice(scope.row.sellSum) }}
           </template>
         </el-table-column>
       </el-table>
-    </div>
-
-    <div class="card" v-if="data.total">
-      <el-pagination background layout="prev, pager, next" v-model:page-size="data.pageSize" v-model:current-page="data.pageNum" :total="data.total"/>
-    </div>
-
-    <el-dialog name="统计信息" width="40%" v-model="data.formVisible" :close-on-click-modal="false" destroy-on-close>
-      <el-form :model="data.form" label-width="100px" style="padding-right: 50px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="data.form.name" autocomplete="off" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="data.formVisible = false">取 消</el-button>
-        <el-button type="primary" @click="save">保 存</el-button>
-      </span>
-      </template>
-    </el-dialog>
-
+    </el-card>
   </div>
 </template>
 
-<script setup>
-import request from "@/utils/request";
-import {reactive} from "vue";
-import {ElMessageBox, ElMessage} from "element-plus";
+<script>
+import request from '@/utils/request'
+import { ElMessage } from 'element-plus'
+import { use } from "echarts/core"
+import { CanvasRenderer } from "echarts/renderers"
+import { BarChart, LineChart } from "echarts/charts"
+import {
+  GridComponent,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent
+} from "echarts/components"
+import VChart from "vue-echarts"
 
-// 文件上传的接口地址
-const uploadUrl = import.meta.env.VITE_BASE_URL + '/files/upload'
+// 注册必须的组件
+use([
+  CanvasRenderer,
+  BarChart,
+  LineChart,
+  GridComponent,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent
+])
 
-const data = reactive({
-  pageNum: 1,
-  pageSize: 10,
-  total: 0,
-  formVisible: false,
-  form: {},
-  tableData: [],
-  name: null
-})
-
-// 分页查询
-const load = () => {
-  request.get('/statistic/selectPage', {
-    params: {
-      pageNum: data.pageNum,
-      pageSize: data.pageSize,
-      userName: data.userName
+export default {
+  name: 'StatisticView',
+  components: {
+    VChart
+  },
+  data() {
+    return {
+      activeTab: 'user',
+      tableData: [],
+      loading: false,
+      chartOption: {}
     }
-  }).then(res => {
-    data.tableData = res.data?.list
-    data.total = res.data?.total
-  })
-}
+  },
+  created() {
+    this.fetchData()
+  },
+  methods: {
+    async fetchData() {
+      this.loading = true
+      try {
+        let url = ''
+        switch (this.activeTab) {
+          case 'user':
+            url = '/statistic/byUser'
+            break
+          case 'goods':
+            url = '/statistic/byGoods'
+            break
+          case 'detail':
+            url = '/statistic/byUserAndGoods'
+            break
+        }
 
-// 新增
-const handleAdd = () => {
-  data.form = {}
-  data.formVisible = true
-}
+        const res = await request.get(url)
+        console.log('响应数据：', res)
 
-// 编辑
-const handleEdit = (row) => {
-  data.form = JSON.parse(JSON.stringify(row))
-  data.formVisible = true
-}
+        if (res.code === '200') {
+          // 处理表格数据
+          this.tableData = res.data.map(item => ({
+            userId: item.userId,
+            userName: item.userName || '未知用户',
+            goodsId: item.goodsId,
+            goodsName: item.goodsName || '未知商品',
+            buyNum: item.buyNum || 0,
+            sellSum: item.sellSum || 0,
+            orderCount: item.orderCount || 0
+          }))
 
-// 新增保存
-const add = () => {
-  request.post('/statistic/add', data.form).then(res => {
-    if (res.code === '200') {
-      load()
-      ElMessage.success('操作成功')
-      data.formVisible = false
-    } else {
-      ElMessage.error(res.msg)
-    }
-  })
-}
+          // 更新图表数据
+          this.updateChartOption()
 
-// 编辑保存
-const update = () => {
-  request.put('/statistic/update', data.form).then(res => {
-    if (res.code === '200') {
-      load()
-      ElMessage.success('操作成功')
-      data.formVisible = false
-    } else {
-      ElMessage.error(res.msg)
-    }
-  })
-}
-
-// 弹窗保存
-const save = () => {
-  // data.form有id就是更新，没有就是新增
-  data.form.id ? update() : add()
-}
-
-// 删除
-const handleDelete = (id) => {
-  ElMessageBox.confirm('删除后数据无法恢复，您确定删除吗?', '删除确认', { type: 'warning' }).then(res => {
-    request.delete('/statistic/delete/' + id).then(res => {
-      if (res.code === '200') {
-        load()
-        ElMessage.success('操作成功')
-      } else {
-        ElMessage.error(res.msg)
+        } else {
+          ElMessage.error(res.msg || '获取统计数据失败')
+        }
+      } catch (error) {
+        console.error('获取统计数据出错:', error)
+        ElMessage.error('获取统计数据失败: ' + (error.message || '未知错误'))
+      } finally {
+        this.loading = false
       }
-    })
-  }).catch(err => {})
-}
+    },
+    handleTabChange() {
+      this.fetchData()
+    },
+    formatPrice(price) {
+      return `¥ ${(Number(price) || 0).toFixed(2)}`
+    },
+    updateChartOption() {
+      const xAxisData = this.tableData.map(item =>
+          this.activeTab === 'user' ? item.userName :
+              this.activeTab === 'goods' ? item.goodsName :
+                  `${item.userName}-${item.goodsName}`
+      )
 
-// 重置
-const reset = () => {
-  data.userName = null
-  load()
+      this.chartOption = {
+        title: {
+          text: '统计数据分析',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        legend: {
+          data: ['订单数量', '购买数量', '销售金额'],
+          top: 30
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: xAxisData,
+          axisLabel: {
+            interval: 0,
+            rotate: 30
+          }
+        },
+        yAxis: [
+          {
+            type: 'value',
+            name: '数量',
+            position: 'left'
+          },
+          {
+            type: 'value',
+            name: '金额(¥)',
+            position: 'right'
+          }
+        ],
+        series: [
+          {
+            name: '订单数量',
+            type: 'bar',
+            data: this.tableData.map(item => item.orderCount)
+          },
+          {
+            name: '购买数量',
+            type: 'bar',
+            data: this.tableData.map(item => item.buyNum)
+          },
+          {
+            name: '销售金额',
+            type: 'line',
+            yAxisIndex: 1,
+            data: this.tableData.map(item => item.sellSum)
+          }
+        ]
+      }
+    }
+  }
 }
-
-// 处理文件上传的钩子
-const handleImgSuccess = (res) => {
-  data.form.avatar = res.data  // res.data就是文件上传返回的文件路径，获取到路径后赋值表单的属性
-}
-
-load()
 </script>
+
+<style scoped>
+.statistic-container {
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.el-radio-group {
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  margin: 20px 0;
+  border: 1px solid #ebeef5;
+  padding: 20px;
+  border-radius: 4px;
+}
+</style>

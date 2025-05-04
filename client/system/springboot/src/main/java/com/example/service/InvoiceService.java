@@ -65,11 +65,31 @@ public class InvoiceService {
     /**
      * 分页查询
      */
-    public PageInfo<Invoice> selectPage(Invoice invoice, Integer pageNum, Integer pageSize) {
+
+    /**
+     * 分页查询
+     */
+    /**
+     * 分页查询
+     */
+    public PageInfo<Invoice> selectPage(Invoice invoice, Integer pageNum, Integer pageSize, String userRole, String userName) {
+        System.out.println("Service - Processing request for userRole: " + userRole);
+
         PageHelper.startPage(pageNum, pageSize);
+
+        // 重要：在设置用户名之前先清空
+        invoice.setUserName(null);
+
+        // 只有非管理员用户才设置用户名过滤
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            System.out.println("Setting user filter for non-admin user: " + userName);
+            invoice.setUserName(userName);
+        } else {
+            System.out.println("Admin user detected - no user filter will be applied");
+        }
+
         List<Invoice> list = invoiceMapper.selectAll(invoice);
         return PageInfo.of(list);
     }
-    
 
 }

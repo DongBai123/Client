@@ -77,20 +77,44 @@ const data = reactive({
 
 // 分页查询
 const load = () => {
+  console.log('Loading orders with user data:', {
+    role: data.user.role,
+    name: data.user.name
+  });
+
   request.get('/orders/selectPage', {
     params: {
       pageNum: data.pageNum,
       pageSize: data.pageSize,
-      orderNum: data.orderNum
+      orderNum: data.orderNum,
+      state: data.state,
+      userRole: data.user.role,
+      userName: data.user.name
     }
   }).then(res => {
+    console.log('Response data:', res.data);
     data.tableData = res.data?.list
     data.total = res.data?.total
-  })
+  }).catch(err => {
+    console.error('Error loading orders:', err);
+  });
 }
 
+// 新增
+const add = () => {
+  // 设置用户信息
+  data.form.userId = data.user.id
 
-
+  request.post('/orders/add', data.form).then(res => {
+    if (res.code === '200') {
+      load()
+      ElMessage.success('操作成功')
+      data.formVisible = false
+    } else {
+      ElMessage.error(res.msg)
+    }
+  })
+}
 // 编辑保存
 const changeState = (row,state) => {
   row.state=state

@@ -2,7 +2,7 @@
   <div>
 
     <div class="card" style="margin-bottom: 5px;">
-      <el-input v-model="data.name" style="width: 300px; margin-right: 10px" placeholder="请输入标题查询"></el-input>
+      <el-input v-model="data.name" style="width: 300px; margin-right: 10px" placeholder="请输入货物名称查询"></el-input>
       <el-button type="primary" @click="load">查询</el-button>
       <el-button type="info" style="margin: 0 10px" @click="reset">重置</el-button>
     </div>

@@ -1,74 +1,51 @@
 package com.example.service;
 
-import cn.hutool.db.sql.Order;
-import com.example.entity.Goods;
 import com.example.entity.Statistic;
 import com.example.mapper.StatisticMapper;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
-import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.annotation.Resource;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * 系统公告业务处理
- **/
-@Transactional
 @Service
 public class StatisticService {
 
     @Resource
     private StatisticMapper statisticMapper;
-    @Resource
-    private GoodsService goodsService;
-    @Resource
-    private OrdersService ordersService;
-    /**
-     * 新增
-     */
-    public void add(Statistic statistic) {
 
-        statisticMapper.insert(statistic);
+    /**
+     * 获取用户统计数据
+     */
+    public List<Statistic> getStatisticsByUser() {
+        return statisticMapper.statisticsByUser();
     }
 
     /**
-     * 删除
+     * 获取商品统计数据
      */
-    public void deleteById(Integer id) {
-        statisticMapper.deleteById(id);
+    public List<Statistic> getStatisticsByGoods() {
+        return statisticMapper.statisticsByGoods();
     }
 
     /**
-     * 修改
+     * 获取用户和商品的详细统计数据
      */
-    public void updateById(Statistic statistic) {
-        statisticMapper.updateById(statistic);
+    public List<Statistic> getStatisticsByUserAndGoods() {
+        return statisticMapper.statisticsByUserAndGoods();
     }
+    public Map<String, Object> getChartData() {
+        List<String> dates = Arrays.asList("2025-04-20", "2025-04-21", "2025-04-22");
+        List<Integer> orderCounts = Arrays.asList(10, 15, 8); // 示例数据
+        List<Integer> salesSums = Arrays.asList(1000, 1500, 800); // 示例数据
 
-    /**
-     * 根据ID查询
-     */
-    public Statistic selectById(Integer id) {
-        return statisticMapper.selectById(id);
+        Map<String, Object> chartData = new HashMap<>();
+        chartData.put("dates", dates);
+        chartData.put("orderCounts", orderCounts);
+        chartData.put("salesSums", salesSums);
+
+        return chartData;
     }
-
-    /**
-     * 查询所有
-     */
-    public List<Statistic> selectAll(Statistic statistic) {
-        return statisticMapper.selectAll(statistic);
-    }
-
-    /**
-     * 分页查询
-     */
-    public PageInfo<Statistic> selectPage(Statistic statistic, Integer pageNum, Integer pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
-        List<Statistic> list = statisticMapper.selectAll(statistic);
-        return PageInfo.of(list);
-    }
-    
-
 }
